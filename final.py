@@ -2,10 +2,28 @@ import os
 import uuid
 import base64
 import fitz
+import sqlite3
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+# 👇 DATABASE FUNCTION
+def init_db():
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
 
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+# 👇 CALL IT HERE
+init_db()
 # make uploads folder if not exists
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
@@ -22,14 +40,35 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
 
-    if username == "anshu" and password == "1234":
-        return render_template("index.html",
-                               total_pages=0,
-                               filename="")
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+    user = c.fetchone()
+
+    conn.close()
+
+    if user:
+        return render_template("index.html", total_pages=0, filename="")
     else:
         return "Invalid login"
 
 
+@app.route("/add_user")
+def add_user():
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("anshu", "1234"))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("rohan", "bade_sahab"))
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("raghav", "bade_sir"))
+        conn.commit()
+    except:
+        pass
+
+    conn.close()
+    return "Users added"
 # ---------------- UPLOAD PDF ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
