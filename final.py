@@ -20,7 +20,7 @@ def index():
                 img_base64 = base64.b64encode(img_bytes).decode("utf-8")
                 pages.append(img_base64)
 
-    return render_template("FINAL JEE.html", pages=pages)
+    return render_template("index.html", pages=pages)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
