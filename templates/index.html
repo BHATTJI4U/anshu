@@ -265,6 +265,7 @@ body { margin:0; font-family:Arial; background:#f3f4f6; }
 </div>
 
 <script>
+let filename = "{{ filename or '' }}";
 let current = 0;
 let total = {{ total_pages or 0 }};
 let answers = {};
@@ -332,7 +333,7 @@ function updatePalette(){
 
 // LOAD PAGE (MAIN FIX)
 function loadPage(page){
-    fetch(`/get_page/${page}`)
+    fetch(`/get_page/${filename}/${page}`)
     .then(res => res.text())
     .then(data => {
         document.getElementById("qnum").innerText="Q "+(page+1);
