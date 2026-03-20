@@ -4,9 +4,6 @@ import base64
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return "JEE App Running 🚀"
 @app.route("/", methods=["GET", "POST"])
 def index():
     pages = []
