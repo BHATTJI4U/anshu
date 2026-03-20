@@ -1,4 +1,5 @@
 flask
+pymupdf
 pillow
 pdf2image
-pymupdf
+gunicorn
