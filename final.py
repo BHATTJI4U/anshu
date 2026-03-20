@@ -54,21 +54,6 @@ def login():
         return "Invalid login"
 
 
-@app.route("/add_user")
-def add_user():
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-
-    try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("anshu", "1234"))
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("rohan", "bade_sahab"))
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("raghav", "bade_sir"))
-        conn.commit()
-    except:
-        pass
-
-    conn.close()
-    return "Users added"
 # ---------------- UPLOAD PDF ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
