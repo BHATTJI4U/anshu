@@ -53,7 +53,30 @@ def login():
     else:
         return "Invalid login"
 
+@app.route("/update_users")
+def update_users():
+    import sqlite3
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
 
+    users = [
+        ("anshu", "1234"),
+        ("rohan", "bade_sahab"),
+        ("raghav", "bade_sir")
+    ]
+
+    for u in users:
+        try:
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", u)
+        except:
+            c.execute("UPDATE users SET password=? WHERE username=?", (u[1], u[0]))
+
+    conn.commit()
+    conn.close()
+
+    return "Users inserted/updated"
+
+    
 # ---------------- UPLOAD PDF ----------------
 @app.route("/upload", methods=["POST"])
 def upload():
