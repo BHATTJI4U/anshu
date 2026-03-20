@@ -174,7 +174,7 @@ body { margin:0; font-family:Arial; background:#f3f4f6; }
 
     <input type="checkbox" id="agree"> I agree<br><br>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" action="/upload" enctype="multipart/form-data">
         <input type="file" name="pdf" required>
         <button type="submit" onclick="return checkAgree()">Start Test</button>
     </form>
@@ -266,6 +266,10 @@ body { margin:0; font-family:Arial; background:#f3f4f6; }
 
 <script>
 let filename = "{{ filename or '' }}";
+
+if(filename){
+    loadPage(0);
+}
 let current = 0;
 let total = {{ total_pages or 0 }};
 let answers = {};
