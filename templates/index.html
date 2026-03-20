@@ -263,12 +263,10 @@ body { margin:0; font-family:Arial; background:#f3f4f6; }
     <div class="palette" id="palette"></div>
 
 </div>
-</div>
-</div>
 
 <script>
-let pages = {{ pages|tojson }};
 let current = 0;
+let total = {{ total_pages or 0 }};
 let answers = {};
 let status = {};
 
@@ -285,7 +283,7 @@ function checkAgree(){
 }
 
 // SHOW MAIN
-if(pages.length>0){
+if(total > 0){
     document.getElementById("instructions").style.display="none";
     document.getElementById("main").style.display="block";
 }
@@ -297,9 +295,6 @@ setInterval(()=>{
 
     document.getElementById("timer").innerText =
         m+":"+s.toString().padStart(2,'0');
-
-    if(totalTime<=600)
-        document.getElementById("timerBox").classList.add("timer-warning");
 
     if(totalTime==300 && !warned){
         alert("⚠️ 5 minutes remaining!");
@@ -317,7 +312,7 @@ setInterval(()=>{
 // PALETTE
 function initPalette(){
     let p=document.getElementById("palette");
-    for(let i=0;i<pages.length;i++){
+    for(let i=0;i<total;i++){
         let b=document.createElement("button");
         b.innerText=i+1;
         b.className="qbtn not-visited";
@@ -335,25 +330,31 @@ function updatePalette(){
     }
 }
 
-// QUESTIONS
-function showQ(){
-    document.getElementById("qnum").innerText="Q "+(current+1);
-    document.getElementById("viewer").innerHTML =
-        `<img src="data:image/png;base64,${pages[current]}">`;
+// LOAD PAGE (MAIN FIX)
+function loadPage(page){
+    fetch(`/get_page/${page}`)
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById("qnum").innerText="Q "+(page+1);
 
-    status[current]=status[current]||"visited";
+        document.getElementById("viewer").innerHTML =
+            `<img src="data:image/png;base64,${data}" style="width:100%">`;
 
-    ["A","B","C","D"].forEach(o=>{
-        document.getElementById("opt"+o).classList.remove("selected");
+        status[page]=status[page]||"visited";
+
+        ["A","B","C","D"].forEach(o=>{
+            document.getElementById("opt"+o).classList.remove("selected");
+        });
+
+        if(answers[page])
+            document.getElementById("opt"+answers[page]).classList.add("selected");
+
+        updatePalette();
+        updateSummary();
     });
-
-    if(answers[current])
-        document.getElementById("opt"+answers[current]).classList.add("selected");
-
-    updatePalette();
-    updateSummary();
 }
 
+// OPTIONS
 function selectOption(opt){
     answers[current]=opt;
     status[current]="answered";
@@ -373,21 +374,34 @@ function saveNext(){ nextQ(); }
 function markReview(){ status[current]="review"; nextQ(); updateSummary(); }
 function clearResponse(){ delete answers[current]; status[current]="visited"; updatePalette(); updateSummary();}
 
-function nextQ(){ if(current<pages.length-1){ current++; showQ(); } }
-function prevQ(){ if(current>0){ current--; showQ(); } }
-function goTo(i){ current=i; showQ(); }
+function nextQ(){
+    if(current < total - 1){
+        current++;
+        loadPage(current);
+    }
+}
+
+function prevQ(){
+    if(current > 0){
+        current--;
+        loadPage(current);
+    }
+}
+
+function goTo(i){
+    current=i;
+    loadPage(i);
+}
 
 // SUBMIT
 function confirmSubmit(){
     let answered=0, review=0, notAnswered=0;
 
-    for(let i=0;i<pages.length;i++){
+    for(let i=0;i<total;i++){
         if(status[i]=="answered") answered++;
         else if(status[i]=="review") review++;
         else if(status[i]=="visited") notAnswered++;
     }
-
-    let total=pages.length;
 
     if(confirm(
         `Submit Test?\n\n` +
@@ -402,17 +416,18 @@ function confirmSubmit(){
 
 function submitTest(){
     let html="<h2>Response Sheet</h2>";
-    for(let i=0;i<pages.length;i++){
+    for(let i=0;i<total;i++){
         let ans=answers[i]||"Not Answered";
         html+=`<p>Q${i+1}: ${ans}</p>`;
     }
     document.body.innerHTML=html;
 }
 
+// SUMMARY
 function updateSummary(){
     let answered=0, notAnswered=0, review=0, notVisited=0;
 
-    for(let i=0;i<pages.length;i++){
+    for(let i=0;i<total;i++){
         if(status[i]=="answered") answered++;
         else if(status[i]=="review") review++;
         else if(status[i]=="visited") notAnswered++;
@@ -426,9 +441,12 @@ function updateSummary(){
 }
 
 // START
-if(pages.length>0){
+if(total > 0){
+    document.getElementById("instructions").style.display="none";
+    document.getElementById("main").style.display="block";
+
     initPalette();
-    showQ();
+    loadPage(0);
 }
 </script>
 
